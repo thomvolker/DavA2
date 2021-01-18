@@ -1,6 +1,6 @@
 ---
 title: "assignment_prediction_SD"
-author: "Ruben van den Goorbergh"
+author: "Ruben van den Goorbergh, Zoë Dunias & Thom Volker"
 date: "1/18/2021"
 output: html_document
 ---
@@ -36,7 +36,7 @@ __reading in the data set__
 set.seed(123)
 dat <-read.csv("BankChurners.csv")
 dat <- dat[,- c(22:23)]
-dat$Dependent_count <-factor(dat$Dependent_count)
+dat$Attrition_Flag <-factor(dat$Attrition_Flag)
 ```
 
 ### Quick EDA
