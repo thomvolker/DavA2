@@ -1,37 +1,33 @@
 ---
-title: "assignment_prediction_SD"
+title: "Assignment Prediction"
 author: "Ruben van den Goorbergh, Zoë Dunias & Thom Volker"
 date: "1/18/2021"
 output: html_document
 ---
 
 # Assignment prediction model
-## A model to retain credit card service costumers
+
+## A model to retain credit card service customers
 
 ### Goal and data set
-The BankChurners data set cotains information on ~10,000 customers of a bank regarding 
-the use of a credit card service. The goal here is to predict whether a customer will
-churn or not so that the bank can take action before the customer actually does quit
-the service. 
 
-The data set consists of 23 variables, both categorical and numerical. The last 
-two variables are results or previous classifiers and will therefore be ommited.
-The variable indicating whether a customer is still active is called 'Attrition_Flag',
-this will be our dependent variable. A desciption of the variables as well as the data set
-can be found [here](https://www.kaggle.com/sakshigoyal7/credit-card-customers).
+The BankChurners data set cotains information on ~10,000 customers of a bank regarding the use of a credit card service. The goal here is to predict whether a customer will churn or not so that the bank can take action before the customer actually does quit the service. 
 
-__Packages__
-```{r}
-library(mice)
+The data set consists of 23 variables, both categorical and numerical. The last two variables are results or previous classifiers and will therefore be omitted. The variable indicating whether a customer is still active is called 'Attrition_Flag', this will be our dependent variable. A description of the variables as well as the data set can be found [here](https://www.kaggle.com/sakshigoyal7/credit-card-customers). <!-- Is dat niet onze taak, om de variabelen die we gebruiken ook te beschrijven? -->
+
+#### Packages
+
+```{r, message = FALSE}
+library(mice) #gebruiken we dit?
 library(tidyverse)
-library(corrplot)
+library(corrplot) #en dit?
 library(glmnet)
 library(randomForest)
 library(caret)
 ```
 
+#### Reading in the data
 
-__reading in the data set__
 ```{r}
 set.seed(123)
 dat <-read.csv("BankChurners.csv")
@@ -40,12 +36,10 @@ dat$Attrition_Flag <-factor(dat$Attrition_Flag)
 ```
 
 ### Quick EDA
+
 To get an idea of what the data looks like, we first performed a quick EDA.
 
-The first thing to notice is that we are dealing with a data set that is quite imbalanced.
-We have to keep this in mind when we choose our model. If we go for a model that 
-is easily affected by unevenly distributed outcomes (e.g. a tree based model), we 
-might want to do something about the imbalance before fitting the model.
+The first thing to notice is that we are dealing with a data set that is quite imbalanced. We have to keep this in mind when we choose our model. If we go for a model that is easily affected by unevenly distributed outcomes (e.g. a tree based model), we might want to do something about the imbalance before fitting the model.
 
 ```{r}
 ggplot(data = dat, aes(x = Attrition_Flag)) +
@@ -53,27 +47,32 @@ ggplot(data = dat, aes(x = Attrition_Flag)) +
 ```
 
 
-To explore the distribution of the predictors per outcome class we made a series 
-of plots. In order to compare them the y-scale is standardized.
+To explore the distribution of the predictors per outcome class we made a series of plots. In order to compare them the y-scale is standardized.
 
-```{r}
-my_plots <- lapply(names(dat), function(var_x){
-  p <- ggplot(dat) +
-        aes_string(var_x)
+```{r, fig.height=10, fig.width=10}
+bar_plots <- dat %>%
+  select(!where(is.numeric)) %>%
+  pivot_longer(-Attrition_Flag) %>%
+  ggplot(aes(x = value, fill = Attrition_Flag)) +
+  geom_bar(position = "fill") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5)) +
+  facet_wrap(~name, ncol = 2, scales = "free")
 
-  if(is.numeric(dat[[var_x]])) {
-    p <- p + geom_density(aes(fill = Attrition_Flag), alpha = 0.6)
+bar_plots
 
-  } else {
-    p <- p + geom_bar(aes(fill = Attrition_Flag),position = "fill", alpha = 0.6)
-  } 
+num_plots <- dat %>%
+  select(Attrition_Flag, where(is.numeric)) %>%
+  pivot_longer(-Attrition_Flag) %>%
+  ggplot(aes(x = value, fill = Attrition_Flag)) +
+  geom_density(alpha = 0.6) +
+  facet_wrap(~name, ncol = 2, scales = "free")
 
-})
-
-my_plots
+num_plots
 ```
-Based on the distibution of the variables per outcome class, potential interesting 
-variables to consider are:
+
+Based on the distribution of the variables per outcome class, potential interesting variables to consider are:
+<!-- Dit is allemaal univariate, dus kan zijn dat dit anders is na het controleren voor andere variabelen -->
+
 * Card category
 * Total_Relationship_Count
 * Months_Inactive_12_mon
@@ -86,8 +85,8 @@ variables to consider are:
 * Avg_Utilization_Ratio
 
 ### Model fitting
-Before we start fitting models, we first split up the data into a test and a training
-part to make sure we can make a fair estimation of the performance of each model.
+
+Before we start fitting models, we first split up the data into a test and a training part to make sure we can make a fair estimation of the performance of each model.
 
 ```{r}
 train_index <- sample(seq(1, nrow(dat), 1), round(0.8*nrow(dat)))
@@ -95,9 +94,7 @@ dat_train <- dat[train_index,]
 dat_test <- dat[-train_index,]
 ```
 
-For this task, we will try three different methods: regular logistic regression,
-L1 logistic regression and a random forest. The model that performs the best will
-be further evaluated and interpreted.
+For this task, we will try three different methods: regular logistic regression, L1 logistic regression and a random forest. The model that performs the best will be further evaluated and interpreted.
 
 ```{r}
 # Regular logistic regression
@@ -126,9 +123,7 @@ lr_l1_model <- glmnet(x = x_train[,-1],
 lambda$lambda.min
 ```
 
-It can be seen that the best lambda is very close to zero, meaning that the model
-gets hardly penalized for using extra parameters. This isn't surprising since the
-data set is quite large and hence the model is less prone to overfit the data.
+It can be seen that the best lambda is very close to zero, meaning that the model gets hardly penalized for using extra parameters. This isn't surprising since the data set is quite large and hence the model is less prone to overfitting of the data.
 
 
 ```{r}
@@ -136,10 +131,7 @@ data set is quite large and hence the model is less prone to overfit the data.
 rf_model <- randomForest(Attrition_Flag ~., data = dat_train)
 ```
 
-Now all models are fitted, we can use them to make predictions on the test data.
-Unlike random forest, logistic regression models estimate probabilities rather than
-outcomes. Hence we used a cut off value of .5 to determine whether a customer was
-predicted to have an active account or not.
+Now all models are fitted, we can use them to make predictions on the test data. Unlike random forest, logistic regression models estimate probabilities rather than outcomes. Hence we used a cut off value of .5 to determine whether a customer was predicted to have an active account or not.
 
 ```{r}
 x_test <- model.matrix(Attrition_Flag ~.,data = dat_test)
@@ -156,32 +148,30 @@ levels(lr_l1_pred) <- c("Attrited Customer", "Existing Customer")
 rf_pred <-  predict(rf_model, newdata = dat_test)
 ```
 
-Having all prediction, we can create confusion matrices to compare the performance
-of the different models.
+Having all prediction, we can create confusion matrices to compare the performance of the different models.
+
 ```{r}
 confusionMatrix(reference = pred, data = lr_pred)
 confusionMatrix(reference = pred, data = lr_l1_pred)
 confusionMatrix(reference = pred, data = rf_pred)
 ```
-It can be seen that the random forest model yield the best results in both recognizing
-the positive and negative cases (sensitivity and specificity). We specifically 
-used those performance metrics instead of using accuracy because accuracy is strongly influenced
-by the performance of the model regarding the majority class.
 
-To see whether we can improve the model a little more we will tune some of its 
-parameters and use a simple under sampling technique to deal with the imbalanced data set.
+It can be seen that the random forest model yield the best results in both recognizing the positive and negative cases (sensitivity and specificity). We specifically used those performance metrics instead of using accuracy because accuracy is strongly influenced by the performance of the model regarding the majority class.
+
+To see whether we can improve the model a little more we will tune some of its parameters and use a simple under sampling technique to deal with the imbalanced data set.
 ```{r}
 dat_us <- caret::downSample(x = dat_train[, -2], 
                             y = dat_train$Attrition_Flag,
                             yname = "Attrition_Flag")
 ```
+
 ```{r}
 rf_us_model <- randomForest(Attrition_Flag~., data = dat_us)
-```
-```{r}
 rf_us_pred <- predict(rf_us_model, newdata = dat_test)
 ```
+
 ```{r}
 confusionMatrix(data = rf_us_pred, reference = pred)
 ```
+
 ### Conclusions
