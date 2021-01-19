@@ -11,16 +11,14 @@ output: html_document
 
 ### Goal and data set
 
-The BankChurners data set cotains information on ~10,000 customers of a bank regarding the use of a credit card service. The goal here is to predict whether a customer will churn or not so that the bank can take action before the customer actually does quit the service. 
+The BankChurners data set contains information on ~10,000 customers of a bank regarding the use of a credit card service. The goal here is to predict whether a customer will churn or not so that the bank can take action before the customer actually does quit the service. 
 
 The data set consists of 23 variables, both categorical and numerical. The last two variables are results or previous classifiers and will therefore be omitted. The variable indicating whether a customer is still active is called 'Attrition_Flag', this will be our dependent variable. A description of the variables as well as the data set can be found [here](https://www.kaggle.com/sakshigoyal7/credit-card-customers). <!-- Is dat niet onze taak, om de variabelen die we gebruiken ook te beschrijven? -->
 
 #### Packages
 
 ```{r, message = FALSE}
-library(mice) #gebruiken we dit?
 library(tidyverse)
-library(corrplot) #en dit?
 library(glmnet)
 library(randomForest)
 library(caret)
@@ -159,6 +157,7 @@ confusionMatrix(reference = pred, data = rf_pred)
 It can be seen that the random forest model yield the best results in both recognizing the positive and negative cases (sensitivity and specificity). We specifically used those performance metrics instead of using accuracy because accuracy is strongly influenced by the performance of the model regarding the majority class.
 
 To see whether we can improve the model a little more we will tune some of its parameters and use a simple under sampling technique to deal with the imbalanced data set.
+
 ```{r}
 dat_us <- caret::downSample(x = dat_train[, -2], 
                             y = dat_train$Attrition_Flag,
