@@ -13,7 +13,29 @@ output: html_document
 
 The BankChurners data set contains information on ~10,000 customers of a bank regarding the use of a credit card service. The goal here is to predict whether a customer will churn or not so that the bank can take action before the customer actually does quit the service. 
 
-The data set consists of 23 variables, both categorical and numerical. The last two variables are results or previous classifiers and will therefore be omitted. The variable indicating whether a customer is still active is called 'Attrition_Flag', this will be our dependent variable. A description of the variables as well as the data set can be found [here](https://www.kaggle.com/sakshigoyal7/credit-card-customers). <!-- Is dat niet onze taak, om de variabelen die we gebruiken ook te beschrijven? -->
+The data set consists of 23 variables, both categorical and numerical. The last two variables are results or previous classifiers and will therefore be omitted. The variable indicating whether a customer is still active is called 'Attrition_Flag', this will be our dependent variable. The data set can be found [here](https://www.kaggle.com/sakshigoyal7/credit-card-customers). <!-- Is dat niet onze taak, om de variabelen die we gebruiken ook te beschrijven? -->
+
+Description of the variables:
+- CLIENTNUM: Client number: unique identifier for the customer holding the account.
+- Customer_Age: Customer's age in years.
+- Gender: Customer's gender (M=Male, F=Female).
+- Dependent_count: Number of dependents.
+- Education_Level: Educational Qualification of the account holder.
+- Marital_Status: Married, Single, Divorced or unknown.
+- Income_Category: annual Income Category of the account holder (< $40K, $40K - 60K, $60K - $80K, $80K-$120K, >).
+- Card_Category: type of Card (Blue, Silver, Gold, Platinum).
+- Months_on_book: period of relationship with bank.
+- Total_Relationship_Count: total no. of products held by the customer.
+- Months_Inactive_12_mon: No. of Contacts in the last 12 months.
+- Credit_Limit: credit limit on the credit card.
+- Total_Revolving_Bal: total revolving balance on the credit card
+- Avg_Open_To_Buy: open to buy credit line (average of last 12 months).
+- Total_Amt_Chng_Q4_Q1: change in transaction amount (Q4 over Q1).
+- Total_Trans_Amt: total transaction amount (Last 12 months).
+- Total_Trans_Ct: total transaction count (Last 12 months).
+- Total_Ct_Chng_Q4_Q1: change in transaction count (Q4 over Q1).
+- Avg_Utilization_Ratio: average card utilization ratio.
+
 
 #### Packages
 
@@ -40,6 +62,8 @@ To get an idea of what the data looks like, we first performed a quick EDA.
 The first thing to notice is that we are dealing with a data set that is quite imbalanced. We have to keep this in mind when we choose our model. If we go for a model that is easily affected by unevenly distributed outcomes (e.g. a tree based model), we might want to do something about the imbalance before fitting the model.
 
 ```{r}
+summary(dat)
+
 ggplot(data = dat, aes(x = Attrition_Flag)) +
   geom_bar()
 ```
