@@ -1,8 +1,16 @@
 ---
 title: "Assignment Prediction"
-author: "Ruben van den Goorbergh, Zoë Dunias & Thom Volker"
-date: "1/18/2021"
-output: html_document
+author:
+- Ruben van den Goorbergh, Zoë Dunias, Cassandra Bunschoten, Paulina von Stackelberg, Sofie van den Brand and Thom Volker
+date: "`r format(Sys.time(), '%d-%m-%Y')`"
+output: 
+  html_document:
+    theme: spacelab
+    highlight: tango
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: true
 ---
 
 ```{r setup, include=FALSE}
@@ -10,11 +18,9 @@ knitr::opts_chunk$set(echo = TRUE)
 options(scipen = 999)
 ```
 
-# Assignment prediction model
+# A model to retain credit card service customers
 
-## A model to retain credit card service customers
-
-### Goal and data set
+# Goal and data set
 
 The BankChurners data set contains information on ~10,000 customers of a bank regarding the use of a credit card service. The goal here is to predict whether a customer will churn or not so that the bank can take action before the customer actually does quit the service. 
 
@@ -43,7 +49,7 @@ The data consists of the following variables:
 - Avg_Utilization_Ratio: average card utilization ratio.
 
 
-#### Packages
+# Packages
 
 ```{r, message = FALSE}
 library(tidyverse)
@@ -53,16 +59,16 @@ library(caret)
 library(kableExtra)
 ```
 
-#### Reading in the data
+# Reading in the data
 
 ```{r}
 set.seed(123)
 dat <-read.csv("BankChurners.csv")
 dat <- dat[, -c(22:23)]
-dat$Attrition_Flag <-factor(dat$Attrition_Flag)
+dat$Attrition_Flag <- factor(dat$Attrition_Flag)
 ```
 
-### Quick EDA
+# Quick EDA
 
 To get an idea of what the data looks like, we first performed a quick EDA.
 
@@ -123,7 +129,7 @@ Based on the distribution of the variables per outcome class, potential interest
 
 Note that this concerns univariate relationships, and assessing multivariate associations might reveal a different picture.
 
-### Model fitting
+# Model fitting
 
 Before we start fitting models, we first split up the data into a test ($20\%$ of the data) and a training ($80\%$ of the data) part to make sure we can make a fair estimation of the performance of each model.
 
@@ -207,7 +213,7 @@ dat_us <- caret::downSample(x = dat_train[, -2],
 ```
 
 ```{r}
-rf_us_model <- randomForest(Attrition_Flag~ ., data = dat_us)
+rf_us_model <- randomForest(Attrition_Flag ~ ., data = dat_us)
 rf_us_pred <- predict(rf_us_model, newdata = dat_test)
 ```
 
@@ -221,8 +227,8 @@ $$\text{balanced accuracy} = \frac{sensitivity + specificity}{2}$$
 As can be seen from the table below, the balanced accuracy improves using undersampling.
 
 ```{r}
-bal_acc <- (0.8050 + 0.9865) / 2
-bal_acc_undersampling <- (0.9465 + 0.9438) / 2
+bal_acc <- sum(confusionMatrix(reference = pred, data = rf_pred)$byClass[c(1,2)])/2
+bal_acc_undersampling <- sum(confusionMatrix(data = rf_us_pred, reference = pred)$byClass[c(1,2)])/2
 
 tibble(bal_acc, bal_acc_undersampling) %>%
   kable() %>%
@@ -233,7 +239,6 @@ Possibly, we can improve the model even further, by tuning the `mtry` parameter 
 
 ```{r}
 # Algorithm Tune (tuneRF)
-set.seed(123)
 bestmtry <- tuneRF(dat_us[, c(1, 3:21)], 
                    dat_us[, 2], 
                    stepFactor = 1.3, 
@@ -246,7 +251,7 @@ It can be seen from the plot that the best Out Of Bag (OOB) error is achieved at
 
 ```{r}
 rf_us_model_2 <- randomForest(Attrition_Flag ~ ., data = dat_us, mtry = 14)
-rf_us_pred_2 <- predict(rf_us_model, newdata = dat_test)
+rf_us_pred_2 <- predict(rf_us_model_2, newdata = dat_test)
 ```
 
 ```{r}
@@ -257,7 +262,7 @@ final_conf_mat
 The tuning of `mtry` does not lead to any notable differences in performance in our case.
 
 
-### Conclusions
+# Conclusions
 
 To assess the importance of the variables in our final model, we use the function `importance()` from the 'randomForest' package.
 
