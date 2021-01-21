@@ -247,10 +247,10 @@ bestmtry <- tuneRF(dat_us[, c(1, 3:21)],
 print(bestmtry)
 ```
 
-It can be seen from the plot that the best Out Of Bag (OOB) error is achieved at an `mtry` value of 14. The plot nicely illustrates the bias-variance trade off as the OOB error declines at first (decreasing bias, slowly increasing variance) and then after it reaches its optimum the decreasing bias doesn't make up for the increasing variance anymore and hence leads to a higher OOB error.
+It can be seen from the plot that the best Out Of Bag (OOB) error is achieved at an `mtry` value of 9. The plot nicely illustrates the bias-variance trade off as the OOB error declines at first (decreasing bias, slowly increasing variance) and then after it reaches its optimum the decreasing bias doesn't make up for the increasing variance anymore and hence leads to a higher OOB error.
 
 ```{r}
-rf_us_model_2 <- randomForest(Attrition_Flag ~ ., data = dat_us, mtry = 14)
+rf_us_model_2 <- randomForest(Attrition_Flag ~ ., data = dat_us, mtry = 9)
 rf_us_pred_2 <- predict(rf_us_model_2, newdata = dat_test)
 ```
 
